@@ -36,6 +36,7 @@ log = logging.getLogger()
 
 fee_map = {}
 price_map = {}
+btce_conn = btceapi.common.BTCEConnection()
 
 def deep_clone_dict_dict(d):
     '''Perform a deep copy of a dictionary of dicionaries of lists of tuples'''
@@ -166,7 +167,7 @@ def download_fee_map():
             f_map[dst] = {}
 
         log.debug('Downloading trade fee for %s' % pair)
-        fee = float(btceapi.public.getTradeFee(pair))*0.01
+        fee = float(btceapi.public.getTradeFee(pair, btce_conn))*0.01
         f_map[src][dst] = fee
         f_map[dst][src] = fee
     return f_map
@@ -182,7 +183,7 @@ def download_price_map():
             p_map[dst] = {}
 
         log.debug('Downloading order depth for %s' % pair)
-        asks, bids = btceapi.public.getDepth(pair)
+        asks, bids = btceapi.public.getDepth(pair, btce_conn)
         p_map[src][dst] = [(float(p),float(v)) for (p,v) in bids]
         p_map[dst][src] = [(float(1/p),float(p*v)) for (p,v) in asks]
     return p_map
