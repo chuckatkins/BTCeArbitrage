@@ -164,7 +164,7 @@ def get_trade_fee_retry(pair, retries=10):
     while retries > 0:
         try:
             return btceapi.public.getTradeFee(pair, btce_conn)
-        except httplib.BadStatusLine:
+        except (httplib.BadStatusLine,socket.gaierror):
             retries -= 1
             log.debug('getTradeFee failed.  Reconnecting with %d tries remaining.' % retries)
             btce_conn = btceapi.common.BTCEConnection()
@@ -194,7 +194,7 @@ def get_depth_retry(pair, retries=10):
     while retries > 0:
         try:
             return btceapi.public.getDepth(pair, btce_conn)
-        except httplib.BadStatusLine:
+        except (httplib.BadStatusLine,socket.gaierror):
             retries -= 1
             log.debug('getDepth failed.  Reconnecting with %d tries remaining.' % retries)
             btce_conn = btceapi.common.BTCEConnection()
