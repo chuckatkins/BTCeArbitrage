@@ -256,7 +256,7 @@ def main():
 
     # Save the updated price map
     if args.output:
-        log.info('Saving updated BTC-e price map to %s' % args.output)
+        log.info('Saving new BTC-e price map to %s' % args.output)
         with open(args.output, 'wb') as pkl_dict:
             pickle.dump((fee_map,price_map), pkl_dict)
 
@@ -298,7 +298,7 @@ def main():
         price_map = download_price_map()
 
         if args.output:
-            log.info('Saving BTC-e price map to %s' % args.output)
+            log.info('Saving new BTC-e price map to %s' % args.output)
             with open(args.output, 'wb') as pkl_dict:
                 pickle.dump((fee_map,price_map), pkl_dict)
 
