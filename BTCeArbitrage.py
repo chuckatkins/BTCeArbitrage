@@ -29,6 +29,7 @@ import pickle
 import logging
 import time
 import datetime
+import httplib
 
 import btceapi
 
@@ -156,6 +157,19 @@ def print_trade_path(path, starting_vol):
     log.info('  %f %s' % (vol, dst))
 
 
+def get_trade_fee_retry(pair, retries=10):
+    '''Call the getTradeFee call using a persistent connection'''
+    global btce_conn
+    while retries > 0:
+        try:
+            return btceapi.public.getTradeFee(pair, btce_conn)
+        except httplib.BadStatusLine:
+            retries -= 1
+            log.debug('getTradeFee failed.  Reconnecting with %d tries remaining.' % retries)
+            btce_conn = btceapi.common.BTCEConnection()
+    return -1
+
+
 def download_fee_map():
     '''Retrieve the fee schedule for all trading pairs'''
     f_map = {}
@@ -167,10 +181,23 @@ def download_fee_map():
             f_map[dst] = {}
 
         log.debug('Downloading trade fee for %s' % pair)
-        fee = float(btceapi.public.getTradeFee(pair, btce_conn))*0.01
+        fee = float(get_trade_fee_retry(pair))*0.01
         f_map[src][dst] = fee
         f_map[dst][src] = fee
     return f_map
+
+
+def get_depth_retry(pair, retries=10):
+    '''Call the getDepth call using a persistent connection'''
+    global btce_conn
+    while retries > 0:
+        try:
+            return btceapi.public.getDepth(pair, btce_conn)
+        except httplib.BadStatusLine:
+            retries -= 1
+            log.debug('getDepth failed.  Reconnecting with %d tries remaining.' % retries)
+            btce_conn = btceapi.common.BTCEConnection()
+    return [],[]
 
 def download_price_map():
     '''Retrieve the map of all pricing information from BTCe'''
@@ -183,7 +210,7 @@ def download_price_map():
             p_map[dst] = {}
 
         log.debug('Downloading order depth for %s' % pair)
-        asks, bids = btceapi.public.getDepth(pair, btce_conn)
+        asks, bids = get_depth_retry(pair)
         p_map[src][dst] = [(float(p),float(v)) for (p,v) in bids]
         p_map[dst][src] = [(float(1/p),float(p*v)) for (p,v) in asks]
     return p_map
@@ -259,6 +286,8 @@ def main():
                 log.info('')
         else:
             log.info('No arbitrage opotunities detected :-(')
+
+
 
         while datetime.datetime.now() < tnext:
             time.sleep(1)
