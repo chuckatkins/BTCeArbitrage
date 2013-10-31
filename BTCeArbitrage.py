@@ -254,12 +254,6 @@ def main():
         log.info('Downloading BTC-e price map')
         price_map = download_price_map()
 
-    # Save the updated price map
-    if args.output:
-        log.info('Saving new BTC-e price map to %s' % args.output)
-        with open(args.output, 'wb') as pkl_dict:
-            pickle.dump((fee_map,price_map), pkl_dict)
-
     log.info('Constructing possible trade loops')
     all_src = price_map.keys()
     trade_paths = {}
@@ -268,10 +262,18 @@ def main():
         trade_paths[src] = traverse(src)
         num_loops += len(trade_paths[src])
     log.info('%d possible trade loops detected' % num_loops)
+    log.info('')
 
     tsleep = datetime.timedelta(seconds=args.interval)
     tnext = datetime.datetime.now() + tsleep
     while True:
+        log.info('Downloading BTC-e price map')
+        price_map = download_price_map()
+
+        log.info('Saving new BTC-e price map to %s' % args.output)
+        with open(args.output, 'wb') as pkl_dict:
+            pickle.dump((fee_map,price_map), pkl_dict)
+
         log.info('Calculating viable trade paths based on volume')
         path_results = compute_path_results(trade_paths, args.vol)
 
@@ -286,21 +288,11 @@ def main():
                 log.info('')
         else:
             log.info('No arbitrage opotunities detected :-(')
-
-
+        log.info('')
 
         while datetime.datetime.now() < tnext:
             time.sleep(1)
         tnext += tsleep
-
-        log.info('')
-        log.info('Downloading BTC-e price map')
-        price_map = download_price_map()
-
-        if args.output:
-            log.info('Saving new BTC-e price map to %s' % args.output)
-            with open(args.output, 'wb') as pkl_dict:
-                pickle.dump((fee_map,price_map), pkl_dict)
 
     return 0
 
