@@ -69,6 +69,7 @@ def traverse_helper(src0, src, path, price_map, all_paths):
 
     # Determine if we have arrived home and the cycle is complete
     if len(path) > 1 and src == src0:
+        log.debug(' -> '.join(path))
         all_paths.append(path)
         return
 
