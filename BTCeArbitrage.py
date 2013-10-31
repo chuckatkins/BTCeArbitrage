@@ -30,6 +30,7 @@ import logging
 import time
 import datetime
 import httplib
+import socket
 
 import btceapi
 
